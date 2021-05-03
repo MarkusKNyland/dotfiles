@@ -1,0 +1,68 @@
+# This is Git's per-user configuration file.
+
+[user]
+# Please adapt and uncomment the following lines:
+	name = Markus K Nyland
+	email = markus.nyland@evry.com
+
+[alias]
+	qm = "!git checkout $1;git merge @{-1}"
+	s = status --short --branch
+	po = push -u origin head
+	co = checkout
+	cob = checkout -b
+	amend = commit -C HEAD --amend
+	ub = rev-parse --abbrev-ref HEAD@{u}
+
+	# show what I did today
+	day = "!sh -c 'git log --reverse --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
+
+	#l = "!f() { git log --pretty='%C(red)%h%C(reset) %s%C(yellow)%d%C(reset) %C(green)(%cr)%C(reset) %C(cyan)[%an]%C(reset)' --graph -n ${1-5}; }; f"
+	l = log --pretty='%C(red)%h%C(reset) %s%C(yellow)%d%C(reset) %C(green)(%cr)%C(reset) %C(cyan)[%an]%C(reset)' --graph
+	
+	dd = "!git diff $@ | delta --hunk-header-style omit --syntax-theme ansi-dark"
+
+	sc = show --pretty='commit %Cred%h%Creset%C(yellow)%d%Creset parent %Cred%p%Creset %n%n%w(72,2,2)%s%n%n%w(72,2,2)%C(cyan)%an%Creset %Cgreen%ar%Creset'
+
+	undo = "!f() { git reset --hard $(git rev-parse --abbrev-ref HEAD)@{${1-1}}; }; f"
+
+	oldest-ancestor = !bash -c 'diff --old-line-format= --new-line-format= <(git rev-list --first-parent \"${1:-master}\") <(git rev-list --first-parent \"${2:-HEAD}\") | head -1' -
+
+	branchdiff = !sh -c \"git diff `git oldest-ancestor`..\"
+
+	bl = "!f() { git log --pretty='%Cred%h%Creset | %C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(cyan)[%an]%Creset' --graph $(git oldest-ancestor)..; }; f"
+
+	branches = for-each-ref --sort=-committerdate --no-contains=refs/remotes/origin/pr --format=\"%(color:blue)%(authordate:relative)%09%(color:red)%(authorname)%09%(color:white)%(color:bold)%(refname:short)\" refs/remotes
+
+	churn ="!f() { set -e; git log --all -M -C --name-only --format='format:' "$@" | sort | grep -v '^$' | uniq -c | egrep -v '^*[0-2]{1} ' | sort -n;}; f"
+
+	churnWithoutJenkins ="!f() { set -e; git log --all -M -C --name-only --perl-regexp --author='^((?!"^Jenkins").*)$' --format='format:' "$@" | sort | grep -v '^$' | uniq -c | egrep -v '^*1 |^*2 '| sort -n;}; f"
+
+	# for github remotes
+	pr  = "!f() { git fetch -fu ${2:-$(git remote |grep ^upstream || echo origin)} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
+	pr-clean = "!git for-each-ref refs/heads/pr/* --format='%(refname)' | while read ref ; do branch=${ref#refs/heads/} ; git branch -D $branch ; done"
+	# for bitbucket/stash remotes
+	spr  = "!f() { git fetch -fu ${2:-$(git remote |grep ^upstream || echo origin)} refs/pull-requests/$1/from:pr/$1 && git checkout pr/$1; }; f"
+
+	# rebase the current branch with changes from upstream remote
+	fr = !git fetch upstream && git rebase upstream/`git rev-parse --abbrev-ref HEAD`
+
+[core]
+    	pager = less
+	excludesfile = C:/Users/E217514/.gitignore_global
+	attributesfile = C:/Users/E217514/.gitattributes
+	longpaths = true
+
+[delta]
+	syntax-theme = ansi-dark
+	line-numbers = true
+
+[diff]
+	tool = intellij
+	algorithm = histogram
+
+[difftool "intellij"]
+	cmd = cmd.exe //c "\"C:/Program Files/JetBrains/IntelliJ IDEA 2019.2/bin/idea.bat\" diff \"$LOCAL\" \"$REMOTE\""
+
+[difftool]
+	prompt = false
